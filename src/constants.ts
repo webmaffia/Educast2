@@ -12,7 +12,7 @@ export const AVATARS: Avatar[] = [
     id: 'a2',
     name: 'Doctor James',
     heyGenId: 'james_expert_v1',
-    previewImageUrl: 'https://images.unsplash.com/photo-1556157382-97dee2dcb059?w=400&q=80',
+    previewImageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80',
     gender: 'MALE'
   },
   {
