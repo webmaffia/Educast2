@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Institutions ---
+    match /institutions/{institutionId} {
+      allow get: if isSignedIn();
+      allow list: if false; // No blanket listing of institutions
+      
+      function isValidInstitution(data) {
+        return data.name is string && data.name.size() < 100 &&
+               data.slug is string && data.slug.size() < 50 &&
+               data.quota is map && 
+               data.quota.maxVideosPerMonth is number;
+      }
+
+      // Root tenant can only be created by manual admin intervention (or simulated for dev)
+      allow create: if false; 
+      allow update: if false; // Managed by backend workers
+      
+      // --- Users ---
+      match /users/{userId} {
+        allow get: if isSignedIn() && (request.auth.uid == userId);
+        allow list: if false; // Admin only in production
+
+        function isValidUser(data) {
+          return data.email == request.auth.token.email &&
+                 data.institutionId == institutionId &&
+                 data.role in ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'FACULTY'];
+        }
+
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming());
+        allow update: if isSignedIn() && request.auth.uid == userId && 
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name']);
+      }
+
+      // --- Videos ---
+      match /videos/{videoId} {
+        // Multi-tenancy check: only same institution
+        allow read: if isSignedIn() && isValidId(institutionId);
+        
+        function isValidVideo(data) {
+          return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+                 data.content is string && data.content.size() < 50000 &&
+                 data.status in ['DRAFT', 'QUEUED', 'PROCESSING', 'RENDERING', 'COMPLETED', 'FAILED'] &&
+                 data.institutionId == institutionId &&
+                 data.createdBy == request.auth.uid;
+        }
+
+        allow create: if isSignedIn() && isValidId(institutionId) && isValidVideo(incoming());
+        
+        allow update: if isSignedIn() && 
+                       existing().status != 'COMPLETED' && // Terminal state lock
+                       existing().createdBy == request.auth.uid &&
+                       isValidVideo(incoming()) &&
+                       // Allow progress updates only (simulated by client but usually by server)
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'progress', 'updatedAt']);
+                       
+        allow delete: if isSignedIn() && existing().createdBy == request.auth.uid;
+      }
+    }
+  }
+}

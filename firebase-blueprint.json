@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "Institution": {
+      "title": "Institution",
+      "description": "A tenant in the system (University/School)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "quota": {
+          "type": "object",
+          "properties": {
+            "maxVideosPerMonth": { "type": "number" },
+            "currentMonthVideos": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug", "quota"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A staff member or admin within an institution",
+      "type": "object",
+      "properties": {
+        "institutionId": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "INSTITUTION_ADMIN", "FACULTY"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["institutionId", "email", "role"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "An AI-generated educational video task",
+      "type": "object",
+      "properties": {
+        "institutionId": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "QUEUED", "PROCESSING", "RENDERING", "COMPLETED", "FAILED"] },
+        "avatarId": { "type": "string" },
+        "backgroundId": { "type": "string" },
+        "layout": { "type": "string" },
+        "content": { "type": "string" },
+        "outputUrl": { "type": "string" },
+        "progress": { "type": "number" },
+        "error": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["institutionId", "createdBy", "title", "status"]
+    }
+  },
+  "firestore": {
+    "/institutions/{institutionId}": {
+      "schema": "Institution",
+      "description": "Root tenant configuration"
+    },
+    "/institutions/{institutionId}/users/{userId}": {
+      "schema": "User",
+      "description": "Users mapped to a specific tenant"
+    },
+    "/institutions/{institutionId}/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Video generation tasks scoped to an institution"
+    }
+  }
+}

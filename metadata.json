@@ -1,0 +1,13 @@
+{
+  "name": "EduCast",
+  "description": "Production-grade AI learning video SaaS platform for educational institutions.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI Video Generation",
+    "Multi-tenant SaaS",
+    "HeyGen Integration"
+  ]
+}
