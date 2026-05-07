@@ -59,9 +59,10 @@ export function CreateVideo() {
       if (rawText) {
         await generateScriptFromText(rawText);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload failed', err);
-      alert('Failed to parse document. Please ensure it is a valid PDF or DOCX.');
+      const serverMessage = err.response?.data?.details || err.response?.data?.error || err.message;
+      alert(`Failed to parse document: ${serverMessage}`);
     } finally {
       setIsParsing(false);
     }

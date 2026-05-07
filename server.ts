@@ -24,7 +24,15 @@ const log = (level: 'INFO' | 'ERROR' | 'WARN', message: string, data?: any) => {
   console.log(JSON.stringify({ timestamp, level, message, ...processedData }));
 };
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Ensure uploads directory exists
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
 
 async function startServer() {
   const app = express();
@@ -61,20 +69,43 @@ async function startServer() {
 
     const filePath = file.path;
     try {
-      log('INFO', 'Starting document parse', { filename: file.originalname, mimetype: file.mimetype, size: file.size });
+      log('INFO', 'Starting document parse', { 
+        filename: file.originalname, 
+        mimetype: file.mimetype, 
+        size: file.size,
+        path: filePath
+      });
+      
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Uploaded file not found at ${filePath}`);
+      }
+
       let text = '';
 
       if (file.mimetype === 'application/pdf') {
         log('INFO', 'Reading PDF buffer');
         const dataBuffer = fs.readFileSync(filePath);
         log('INFO', 'Calling pdf-parse');
-        const data = await pdf(dataBuffer);
-        text = data.text;
+        
+        try {
+          const data = await pdf(dataBuffer);
+          text = data.text;
+        } catch (pdfErr: any) {
+          log('ERROR', 'pdf-parse specific failure', { error: pdfErr.message });
+          throw new Error(`PDF parsing library failed: ${pdfErr.message}`);
+        }
+        
         log('INFO', 'PDF parsed successfully', { charCount: text?.length });
-      } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/octet-stream') {
+        // Some systems report docx as octet-stream locally
         log('INFO', 'Calling mammoth for DOCX');
-        const data = await mammoth.extractRawText({ path: filePath });
-        text = data.value;
+        try {
+          const data = await mammoth.extractRawText({ path: filePath });
+          text = data.value;
+        } catch (mammothErr: any) {
+          log('ERROR', 'mammoth specific failure', { error: mammothErr.message });
+          throw new Error(`Word document parsing library failed: ${mammothErr.message}`);
+        }
         log('INFO', 'DOCX parsed successfully', { charCount: text?.length });
       } else {
         log('WARN', 'Unsupported file type attempted', { mimetype: file.mimetype });
