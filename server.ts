@@ -3,8 +3,9 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
-import * as pdfImport from 'pdf-parse';
-const pdf = (pdfImport as any).default || pdfImport;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
 import mammoth from 'mammoth';
 import fs from 'fs';
 import axios from 'axios';
@@ -12,6 +13,11 @@ import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Ensure uploads directory exists
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads', { recursive: true });
+}
 
 // Structured Logging Utility
 const log = (level: 'INFO' | 'ERROR' | 'WARN', message: string, data?: any) => {
@@ -24,15 +30,7 @@ const log = (level: 'INFO' | 'ERROR' | 'WARN', message: string, data?: any) => {
   console.log(JSON.stringify({ timestamp, level, message, ...processedData }));
 };
 
-const upload = multer({ 
-  dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
-
-// Ensure uploads directory exists
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
+const upload = multer({ dest: 'uploads/' });
 
 async function startServer() {
   const app = express();
@@ -56,7 +54,15 @@ async function startServer() {
   });
 
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', service: 'EduCast Orchestrator', timestamp: new Date() });
+    res.json({ 
+      status: 'ok', 
+      service: 'EduCast Orchestrator', 
+      timestamp: new Date(),
+      config: {
+        heygen: !!process.env.HEYGEN_API_KEY && process.env.HEYGEN_API_KEY.length > 5,
+        gemini: !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length > 5
+      }
+    });
   });
 
   // PDF/DOCX Parser Endpoint
@@ -69,43 +75,20 @@ async function startServer() {
 
     const filePath = file.path;
     try {
-      log('INFO', 'Starting document parse', { 
-        filename: file.originalname, 
-        mimetype: file.mimetype, 
-        size: file.size,
-        path: filePath
-      });
-      
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`Uploaded file not found at ${filePath}`);
-      }
-
+      log('INFO', 'Starting document parse', { filename: file.originalname, mimetype: file.mimetype, size: file.size });
       let text = '';
 
       if (file.mimetype === 'application/pdf') {
         log('INFO', 'Reading PDF buffer');
         const dataBuffer = fs.readFileSync(filePath);
-        log('INFO', 'Calling pdf-parse');
-        
-        try {
-          const data = await pdf(dataBuffer);
-          text = data.text;
-        } catch (pdfErr: any) {
-          log('ERROR', 'pdf-parse specific failure', { error: pdfErr.message });
-          throw new Error(`PDF parsing library failed: ${pdfErr.message}`);
-        }
-        
+        log('INFO', 'Calling PDF parse');
+        const result = await pdf(dataBuffer);
+        text = result.text;
         log('INFO', 'PDF parsed successfully', { charCount: text?.length });
-      } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/octet-stream') {
-        // Some systems report docx as octet-stream locally
+      } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         log('INFO', 'Calling mammoth for DOCX');
-        try {
-          const data = await mammoth.extractRawText({ path: filePath });
-          text = data.value;
-        } catch (mammothErr: any) {
-          log('ERROR', 'mammoth specific failure', { error: mammothErr.message });
-          throw new Error(`Word document parsing library failed: ${mammothErr.message}`);
-        }
+        const data = await mammoth.extractRawText({ path: filePath });
+        text = data.value;
         log('INFO', 'DOCX parsed successfully', { charCount: text?.length });
       } else {
         log('WARN', 'Unsupported file type attempted', { mimetype: file.mimetype });
@@ -167,6 +150,14 @@ async function startServer() {
           'a3': 'emma_youth_v1'
         };
 
+        // HeyGen Headers Logic: Support both API Key (X-Api-Key) and JWT (Bearer)
+        const headers: any = { 'Content-Type': 'application/json' };
+        if (heygenKey.startsWith('ey')) {
+          headers['Authorization'] = `Bearer ${heygenKey}`;
+        } else {
+          headers['X-Api-Key'] = heygenKey;
+        }
+
         const response = await axios.post('https://api.heygen.com/v2/video/generate', {
           video_inputs: [
             {
@@ -178,17 +169,12 @@ async function startServer() {
               voice: {
                 type: 'text',
                 input_text: content,
-                voice_id: avatarId === 'a2' ? '1bd001e1791147f38038cbe200a74797' : '21a15555d49141f3918d6a7d5ea55866'
+                voice_id: avatarId === 'a2' ? 'f717abcdfc864da09c394f5877c4494a' : '070d63673911474895689ef2339d6776'
               }
             }
           ],
           dimension: { width: 1280, height: 720 }
-        }, {
-          headers: {
-            'X-Api-Key': heygenKey,
-            'Content-Type': 'application/json'
-          }
-        });
+        }, { headers });
 
         if (response.data?.data?.video_id) {
           newVideo.heygenVideoId = response.data.data.video_id;
@@ -227,8 +213,17 @@ async function startServer() {
         // REAL HEYGEN POLLING
         try {
           const heygenKey = process.env.HEYGEN_API_KEY;
+          if (!heygenKey) throw new Error('HEYGEN_API_KEY missing during polling');
+          
+          const headers: any = {};
+          if (heygenKey.startsWith('ey')) {
+            headers['Authorization'] = `Bearer ${heygenKey}`;
+          } else {
+            headers['X-Api-Key'] = heygenKey;
+          }
+
           const response = await axios.get(`https://api.heygen.com/v2/video_status.get?video_id=${video.heygenVideoId}`, {
-            headers: { 'X-Api-Key': heygenKey }
+            headers
           });
 
           const { status, video_url, error } = response.data.data;

@@ -1,1 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-dashboard-bg: var(--bg-dashboard);
+  --color-sidebar-bg: var(--bg-sidebar);
+  --color-card-bg: var(--bg-card);
+  --color-button-bg: var(--bg-button);
+  --color-border-subtle: var(--border-subtle);
+  --color-header-bg: var(--bg-header);
+  --image-telemetry-bg: var(--bg-telemetry);
+}
+
+@layer base {
+  :root {
+    --bg-dashboard: #111111;
+    --bg-sidebar: #1a1a1a;
+    --bg-card: #1a1a1a;
+    --bg-button: #2a2a2a;
+    --bg-header: #111111;
+    --border-subtle: #2a2a2a;
+    --bg-telemetry: linear-gradient(to bottom right, #000000, #172554);
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+  }
+
+  .light {
+    --bg-dashboard: #F8FAFC;
+    --bg-sidebar: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-button: #F1F5F9;
+    --bg-header: #FFFFFF;
+    --border-subtle: #E2E8F0;
+    --bg-telemetry: linear-gradient(to bottom right, #f8fafc, #dbeafe);
+    --text-primary: #0f172a;
+    --text-secondary: #4b5563;
+    --text-muted: #94a3b8;
+  }
+
+  body {
+    @apply bg-dashboard-bg font-sans antialiased;
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+  }
+
+  p {
+    color: var(--text-secondary);
+  }
+
+  /* Target specific elements that might have hardcoded dark colors */
+  .dark-text { color: #ffffff; }
+  .light .dark-text { color: #0f172a; }
+}

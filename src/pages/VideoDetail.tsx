@@ -32,17 +32,17 @@ export function VideoDetail() {
   const selectedAvatar = AVATARS.find(a => a.id === video.avatarId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       <div className="flex items-center justify-between">
-        <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 font-medium transition-colors">
+        <Link to="/" className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
         <div className="flex items-center gap-3">
-          <button className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+          <button className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
             <Trash2 className="w-5 h-5" />
           </button>
-          <button className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+          <button className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all">
             <Share2 className="w-5 h-5" />
           </button>
           <a
@@ -50,7 +50,7 @@ export function VideoDetail() {
             download={`${video.title.replace(/\s+/g, '_')}.mp4`}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-shadow shadow-lg shadow-indigo-100 ${!video.outputUrl ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/10 ${!video.outputUrl ? 'opacity-50 pointer-events-none' : ''}`}
           >
             <Download className="w-4 h-4" />
             Download MP4
@@ -59,13 +59,12 @@ export function VideoDetail() {
       </div>
 
       {video.status === 'COMPLETED' && !video.heygenVideoId && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 shadow-sm">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="bg-blue-600/10 border border-blue-600/20 p-5 rounded-2xl flex items-start gap-3 shadow-sm">
+          <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="text-sm font-bold text-amber-900">Prototype Environment Notice</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
-              This is a demonstration build. Real-time AI video rendering requires a production license key (e.g., HeyGen, Synthesia). 
-              A high-quality <strong>sample video</strong> has been generated to showcase the player interface and user workflow.
+            <p className="text-sm font-bold tracking-tight leading-none">Simulation Environment</p>
+            <p className="text-xs leading-relaxed max-w-2xl opacity-70">
+              Real-time AI video rendering requires a production license. A high-quality <strong>sample video</strong> has been generated to demonstrate the user workflow.
             </p>
           </div>
         </div>
@@ -74,7 +73,7 @@ export function VideoDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Player Section */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-black aspect-video rounded-3xl overflow-hidden shadow-2xl relative border-8 border-slate-900 group">
+          <div className="bg-black aspect-video rounded-[32px] overflow-hidden shadow-2xl relative border-[12px] border-card-bg group">
              {video.status === 'COMPLETED' ? (
                <video 
                  src={video.outputUrl} 
@@ -83,52 +82,52 @@ export function VideoDetail() {
                  className="w-full h-full object-contain"
                />
              ) : (
-               <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-                 <div className="text-center space-y-6 max-w-sm px-6">
+               <div className="absolute inset-0 flex items-center justify-center bg-black">
+                 <div className="text-center space-y-8 max-w-sm px-6">
                     <div className="relative inline-block">
-                      <div className="w-24 h-24 bg-indigo-600/10 rounded-full flex items-center justify-center mx-auto border border-indigo-600/20">
-                        <Loader2 className="text-indigo-500 w-10 h-10 animate-spin" />
+                      <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 backdrop-blur-sm">
+                        <Loader2 className="text-blue-500 w-10 h-10 animate-spin" />
                       </div>
                       {selectedAvatar && (
-                        <img src={selectedAvatar.previewImageUrl} className="absolute inset-0 w-24 h-24 rounded-full object-cover opacity-20" />
+                        <img src={selectedAvatar.previewImageUrl} className="absolute inset-0 w-24 h-24 rounded-full object-cover opacity-20 filter grayscale" />
                       )}
                     </div>
-                    <div className="space-y-3">
-                      <p className="text-white font-black tracking-widest uppercase text-xs">AI Renderer: {video.status}</p>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="space-y-4">
+                      <p className="font-black tracking-[0.2em] uppercase text-[10px] opacity-80">Renderer: {video.status}</p>
+                      <div className="w-full bg-black/10 h-1.5 rounded-full overflow-hidden border border-border-subtle">
                         <div 
-                          className="bg-indigo-500 h-full transition-all duration-1000 ease-out" 
+                          className="bg-blue-500 h-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(59,130,246,0.5)]" 
                           style={{ width: `${video.progress}%` }} 
                         />
                       </div>
-                      <p className="text-white/40 text-[10px] font-mono">{video.progress}% Frame Progress</p>
+                      <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest">{video.progress}% Complete</p>
                     </div>
                  </div>
                </div>
              )}
           </div>
 
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-               <div className="space-y-1">
-                 <div className="flex items-center gap-2">
-                   <h2 className="text-4xl font-black text-slate-900 tracking-tighter">{video.title}</h2>
-                   <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded border ${video.heygenVideoId ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+          <div className="bg-card-bg p-10 rounded-3xl border border-border-subtle shadow-xl space-y-8 text-[var(--text-primary)]">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-8">
+               <div className="space-y-2">
+                 <div className="flex items-center gap-3">
+                   <h2 className="text-4xl font-black tracking-tight">{video.title}</h2>
+                   <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded border ${video.heygenVideoId ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'}`}>
                      {video.heygenVideoId ? 'Real Synthesis' : 'Simulated'}
                    </span>
                  </div>
-                 <p className="text-slate-400 font-mono text-[10px]">OBJECT_ID: {video.id}</p>
+                 <p className="text-[var(--text-secondary)] font-mono text-[9px] uppercase tracking-widest leading-none">Instance_ID: {video.id}</p>
                </div>
             </div>
             
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-indigo-600 group">
+              <div className="flex items-center gap-3 text-blue-500">
                 <BookOpen className="w-4 h-4" />
-                <span className="font-bold text-xs uppercase tracking-widest">Presenter Script</span>
+                <span className="font-bold text-[11px] uppercase tracking-wider">Presenter Script</span>
               </div>
               <div className="relative">
-                <div className="absolute -left-4 top-0 bottom-0 w-1 bg-indigo-500 rounded-full" />
-                <p className="text-slate-700 text-lg leading-relaxed font-medium italic pl-4">
+                <div className="absolute -left-5 top-0 bottom-0 w-1 bg-blue-500 rounded-full opacity-50 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                <p className="text-xl leading-relaxed font-medium italic pl-4 opacity-90">
                   "{video.content}"
                 </p>
               </div>
@@ -139,44 +138,44 @@ export function VideoDetail() {
         {/* Sidebar Info */}
         <div className="space-y-6">
           {/* Avatar Profile */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-             <h3 className="font-bold text-slate-900 flex items-center gap-2 text-sm uppercase tracking-wider">
-               <UserIcon className="w-4 h-4 text-indigo-600" />
-               Lead Presenter
+          <div className="bg-card-bg p-8 rounded-3xl border border-border-subtle shadow-xl space-y-8">
+             <h3 className="font-bold text-[var(--text-secondary)] flex items-center gap-2 text-[11px] uppercase tracking-[0.15em]">
+               <UserIcon className="w-4 h-4 text-blue-500" />
+               Presenter
              </h3>
-             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg shrink-0">
-                  <img src={selectedAvatar?.previewImageUrl} className="w-full h-full object-cover" />
+             <div className="flex items-center gap-5 p-5 bg-black/5 rounded-2xl border border-border-subtle">
+               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border-subtle shadow-lg shrink-0">
+                  <img src={selectedAvatar?.previewImageUrl} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
                </div>
                <div>
-                  <p className="font-bold text-slate-900">{selectedAvatar?.name || 'Standard AI'}</p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black leading-tight mt-1">
-                    Visionary {selectedAvatar?.gender === 'FEMALE' ? 'Female' : 'Male'} Model
+                  <p className="font-bold text-lg leading-none">{selectedAvatar?.name || 'Standard AI'}</p>
+                  <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-black leading-none mt-2">
+                    {selectedAvatar?.gender === 'FEMALE' ? 'Female' : 'Male'} Model
                   </p>
                </div>
              </div>
-             <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-               <p className="text-[10px] text-indigo-600 leading-relaxed font-medium">
-                 This model is trained on domain-specific academic vocabularies to ensure professional delivery of complex technical topics.
+             <div className="p-4 bg-blue-500/5 rounded-xl border border-blue-500/10">
+               <p className="text-[11px] leading-relaxed font-medium opacity-70">
+                 Trained on domain-specific academic vocabularies for expert technical delivery.
                </p>
              </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Clock className="w-4 h-4 text-indigo-600" />
+          <div className="bg-card-bg p-8 rounded-3xl border border-border-subtle shadow-xl space-y-6">
+            <h3 className="font-bold text-[var(--text-secondary)] flex items-center gap-2 text-[11px] uppercase tracking-[0.15em]">
+              <Clock className="w-4 h-4 text-blue-500" />
               Instance Details
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[
-                { label: 'Pipeline Status', value: video.status, color: video.status === 'COMPLETED' ? 'text-emerald-600 bg-emerald-50 border border-emerald-100' : 'text-indigo-600 bg-indigo-50 border border-indigo-100' },
+                { label: 'Status', value: video.status, color: video.status === 'COMPLETED' ? 'text-green-500 bg-green-500/10 border-green-500/20' : 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
                 { label: 'Progress', value: `${video.progress}%` },
-                { label: 'Provider ID', value: 'AIS-CLOUD-ENGINE-V1' },
-                { label: 'Created At', value: new Date(video.createdAt).toLocaleDateString() },
+                { label: 'Engine', value: 'AIS-CLOUD-V1' },
+                { label: 'Timestamp', value: new Date(video.createdAt).toLocaleDateString() },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
-                  <span className={`text-[10px] font-mono font-bold text-slate-800 ${item.color || ''} px-2 py-0.5 rounded uppercase`}>
+                <div key={item.label} className="flex items-center justify-between pb-3 border-b border-border-subtle last:border-0 last:pb-0">
+                  <span className="text-[10px] font-bold text-[var(--text-secondary)] opacity-60 uppercase tracking-widest">{item.label}</span>
+                  <span className={`text-[9px] font-mono font-bold ${item.color || 'bg-black/5 text-[var(--text-secondary)]'} px-2 py-0.5 rounded uppercase`}>
                     {item.value}
                   </span>
                 </div>
@@ -184,20 +183,20 @@ export function VideoDetail() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-black p-8 rounded-3xl text-white space-y-6 shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-             <div className="flex items-center justify-between">
-               <h3 className="font-black text-xs uppercase tracking-[0.2em] text-indigo-400">System Logs</h3>
+          <div className="bg-telemetry-bg p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden border border-border-subtle">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+             <div className="flex items-center justify-between relative z-10">
+               <h3 className="font-black text-[10px] uppercase tracking-[0.25em] text-blue-500/60">Telemetry Logs</h3>
                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500/30" />
                </div>
              </div>
-             <div className="font-mono text-[9px] text-indigo-300 space-y-2 bg-black/40 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
-                <p className="opacity-50 tracking-tighter">[{new Date().toISOString().split('T')[1]}] KERNEL_INIT_OK</p>
-                <p className="opacity-80">[{new Date().toISOString().split('T')[1]}] SECURE_HANDSHAKE_READY</p>
-                <p className="text-white">[{new Date().toISOString().split('T')[1]}] {video.status === 'QUEUED' ? 'ASSET_QUEUE_PENDING' : 'THREAD_RENDER_ACTIVE'}</p>
-                <p className="text-indigo-400">[{new Date().toISOString().split('T')[1]}] AVATAR_SYNC: {selectedAvatar?.name}</p>
+             <div className="font-mono text-[9px] text-blue-500 space-y-2 bg-black/5 p-5 rounded-2xl border border-border-subtle backdrop-blur-xl relative z-10">
+                <p className="opacity-40">[{new Date().toISOString().split('T')[1]}] SYS_KERNEL: OK</p>
+                <p className="opacity-70">[{new Date().toISOString().split('T')[1]}] SHAKE_SECURE: READY</p>
+                <p className="text-[var(--text-primary)]">[{new Date().toISOString().split('T')[1]}] {video.status === 'QUEUED' ? 'QUEUE_IDLE' : 'S_THREAD_ACTIVE'}</p>
+                <p className="text-blue-500 font-bold">[{new Date().toISOString().split('T')[1]}] V_MODEL: {selectedAvatar?.name?.toUpperCase()}</p>
              </div>
           </div>
         </div>
